@@ -1,0 +1,12 @@
+version: '2.1'
+
+services:
+  users-service:
+    container_name: users-service
+    build: .
+    volumes:
+      - '.:/usr/src/app'
+    ports:
+      - 5001:5000 # 端口暴露（主机端口:容器端口）
+    environment:
+      - APP_SETTINGS=project.config.DevelopmentConfig
