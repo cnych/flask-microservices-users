@@ -15,13 +15,26 @@ services:
     container_name: users-service
     build: ./
     ports:
-      - 5001:5000 # 暴露端口 - 主机:容器
+      - '5000' # 只暴露容器端口
     environment:
-      - APP_SETTINGS=project.config.DevelopmentConfig
-      - DATABASE_URL=mysql+pymysql://root:root321@users-db:3306/users_dev
+      - APP_SETTINGS=project.config.ProductionConfig
+      - DATABASE_URL=mysql+pymysql://root:root321@users-db:3306/users_prod
       - DATABASE_TEST_URL=mysql+pymysql://root:root321@users-db:3306/users_test
+    command: gunicorn -b 0.0.0.0:5000 manage:app
     depends_on:
       users-db:
         condition: service_healthy
     links:
       - users-db
+
+  nginx:
+    container_name: nginx
+    build: ./nginx/
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      users-service:
+        condition: service_started
+    links:
+      - users-service
