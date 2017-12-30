@@ -1,8 +1,10 @@
 import unittest
 from flask_script import Manager
-from project import app, db
+from project import create_app, db
+from project.api.models import User
 
 
+app = create_app()
 manager = Manager(app)
 
 
@@ -11,6 +13,14 @@ def recreate_db():
     """重新创建数据表."""
     db.drop_all()
     db.create_all()
+    db.session.commit()
+
+
+@manager.command
+def seed_db():
+    """添加测试数据."""
+    db.session.add(User(username='cnych', email="qikqiak@gmail.com"))
+    db.session.add(User(username='chyang', email="icnych@gmail.com"))
     db.session.commit()
 
 

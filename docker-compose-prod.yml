@@ -1,0 +1,27 @@
+version: '2.1'
+
+services:
+  users-db:
+    container_name: users-db
+    build: ./project/db
+    ports:
+      - 3307:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root321
+    healthcheck:
+      test: exit 0
+
+  users-service:
+    container_name: users-service
+    build: ./
+    ports:
+      - 5001:5000 # 暴露端口 - 主机:容器
+    environment:
+      - APP_SETTINGS=project.config.DevelopmentConfig
+      - DATABASE_URL=mysql+pymysql://root:root321@users-db:3306/users_dev
+      - DATABASE_TEST_URL=mysql+pymysql://root:root321@users-db:3306/users_test
+    depends_on:
+      users-db:
+        condition: service_healthy
+    links:
+      - users-db
