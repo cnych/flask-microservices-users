@@ -25,7 +25,8 @@ class TestUserService(BaseTestCase):
         with self.client:
             response = self.client.post(
                 '/users',
-                data=json.dumps(dict(username='cnych', email='qikqiak@gmail.com')),
+                data=json.dumps(dict(username='cnych',
+                                     email='qikqiak@gmail.com')),
                 content_type='application/json',
             )
             data = json.loads(response.data.decode())
@@ -130,3 +131,33 @@ class TestUserService(BaseTestCase):
             self.assertEqual(
                 'qikqiak@gmail.com', data['data']['users'][1]['email'])
             self.assertEqual('success', data['status'])
+
+    def test_main_no_users(self):
+        """没有用户"""
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'No users!', response.data)
+
+    def test_main_with_users(self):
+        """有多个用户的场景"""
+        add_user('cnych', 'icnych@gmail.com')
+        add_user('qikqiak', 'qikqiak@gmail.com')
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'All Users', response.data)
+        self.assertNotIn(b'No users!', response.data)
+        self.assertIn(b'cnych', response.data)
+        self.assertIn(b'qikqiak', response.data)
+
+    def test_main_add_user(self):
+        """前端页面添加一个新的用户"""
+        with self.client:
+            response = self.client.post(
+                '/',
+                data=dict(username='cnych', email='cnych@gmail.com'),
+                follow_redirects=True
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'All Users', response.data)
+            self.assertNotIn(b'No users!', response.data)
+            self.assertIn(b'cnych', response.data)
